@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --sidebar-bg: #1C1917;
+    --sidebar-text: #D6D3CC;
+    --sidebar-muted: #78716C;
+    --sidebar-active: #292524;
+    --sidebar-hover: #231F1E;
+    --accent: #C84B31;
+    --accent2: #2D6A4F;
+    --text: #1C1917;
+    --text2: #57534E;
+    --text3: #A8A29E;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 15px;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-name {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    color: #FAFAF9;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+
+  .new-list-btn {
+    width: 100%;
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 14px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    color: #FAFAF9;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .new-list-btn:hover { background: rgba(255,255,255,0.12); }
+  .new-list-btn i { font-size: 16px; }
+
+  .sidebar-section-label {
+    padding: 14px 20px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--sidebar-muted);
+  }
+
+  #lists-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
+
+  .list-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--sidebar-text);
+    font-size: 13.5px;
+    font-weight: 400;
+    transition: background 0.12s;
+    position: relative;
+    user-select: none;
+  }
+
+  .list-nav-item:hover { background: var(--sidebar-hover); }
+  .list-nav-item.active { background: var(--sidebar-active); color: #FAFAF9; }
+
+  .list-nav-item .nav-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 22px; text-align: center;
+  }
+
+  .list-nav-item .nav-label {
+    flex: 1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .list-nav-item .nav-count {
+    font-size: 11px;
+    color: var(--sidebar-muted);
+    background: rgba(255,255,255,0.06);
+    padding: 1px 7px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  .list-nav-item .nav-delete {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--sidebar-muted);
+    cursor: pointer;
+    padding: 2px;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .list-nav-item:hover .nav-delete { display: flex; }
+  .list-nav-item .nav-delete:hover { color: #EF4444; background: rgba(239,68,68,0.15); }
+
+  .sidebar-footer {
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 11px;
+    color: var(--sidebar-muted);
+    text-align: center;
+  }
+
+  /* ── MAIN CONTENT ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  #list-icon-btn {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border2);
+    font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    flex-shrink: 0;
+  }
+
+  #list-icon-btn:hover { background: #E8E3DB; border-color: rgba(0,0,0,0.2); }
+
+  #list-title-input {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    outline: none;
+    flex: 1;
+    letter-spacing: -0.4px;
+  }
+
+  #list-title-input::placeholder { color: var(--text3); }
+
+  .toolbar-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .toolbar-actions {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .icon-btn {
+    width: 34px; height: 34px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 17px;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .icon-btn:hover { background: var(--surface2); color: var(--text); }
+
+  #content-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── ADD ITEM BAR ── */
+  #add-item-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+
+  #add-item-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14.5px;
+    color: var(--text);
+    background: transparent;
+  }
+
+  #add-item-input::placeholder { color: var(--text3); }
+
+  #add-emoji-btn {
+    background: none; border: none;
+    font-size: 20px; cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: background 0.12s;
+    line-height: 1;
+  }
+
+  #add-emoji-btn:hover { background: var(--surface2); }
+
+  #add-submit-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.12s;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  #add-submit-btn:hover { opacity: 0.88; }
+
+  /* ── LIST ITEMS ── */
+  .item-group-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 20px 0 8px;
+    padding: 0 4px;
+  }
+
+  .list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 7px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    position: relative;
+    group: true;
+  }
+
+  .list-item:hover { border-color: var(--border2); box-shadow: var(--shadow); }
+  .list-item.done { opacity: 0.55; }
+
+  .item-check {
+    width: 20px; height: 20px;
+    min-width: 20px;
+    border: 1.5px solid var(--border2);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+    transition: background 0.15s, border-color 0.15s;
+    font-size: 11px;
+    color: transparent;
+    background: transparent;
+  }
+
+  .item-check:hover { border-color: var(--accent); }
+  .list-item.done .item-check { background: var(--accent2); border-color: var(--accent2); color: white; }
+
+  .item-emoji { font-size: 18px; line-height: 1; margin-top: 0px; flex-shrink: 0; }
+
+  .item-body { flex: 1; min-width: 0; }
+
+  .item-text {
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.5;
+    outline: none;
+    word-break: break-word;
+  }
+
+  .list-item.done .item-text { text-decoration: line-through; color: var(--text3); }
+
+  .item-note {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 3px;
+    outline: none;
+  }
+
+  .item-note:empty::before { content: attr(data-placeholder); color: var(--text3); pointer-events: none; }
+
+  .item-actions {
+    display: none;
+    gap: 4px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .list-item:hover .item-actions { display: flex; }
+
+  .item-action-btn {
+    background: none; border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 3px;
+    border-radius: 5px;
+    transition: background 0.1s, color 0.1s;
+    line-height: 1;
+    display: flex; align-items: center;
+  }
+
+  .item-action-btn:hover { background: var(--surface2); color: var(--text); }
+  .item-action-btn.danger:hover { background: #FEE2E2; color: #DC2626; }
+
+  .item-priority {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  .priority-high { background: #EF4444; }
+  .priority-med { background: #F59E0B; }
+  .priority-low { background: #6EE7B7; }
+  .priority-none { background: transparent; }
+
+  /* ── EMPTY STATE ── */
+  #empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text3);
+    gap: 10px;
+    padding: 60px 0;
+  }
+
+  #empty-state i { font-size: 44px; opacity: 0.4; }
+  #empty-state p { font-size: 14px; }
+
+  /* ── WELCOME ── */
+  #welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 48px;
+  }
+
+  .welcome-title {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    letter-spacing: -0.5px;
+  }
+
+  .welcome-sub {
+    font-size: 15px;
+    color: var(--text2);
+    text-align: center;
+    max-width: 360px;
+    line-height: 1.6;
+    margin-top: -16px;
+  }
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    max-width: 560px;
+    width: 100%;
+  }
+
+  .template-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 20px 18px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .template-card:hover {
+    border-color: rgba(0,0,0,0.22);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .template-card .t-icon { font-size: 26px; line-height: 1; }
+  .template-card .t-name { font-weight: 500; font-size: 14px; color: var(--text); }
+  .template-card .t-desc { font-size: 11.5px; color: var(--text3); line-height: 1.4; }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 18px;
+    letter-spacing: -0.3px;
+  }
+
+  .modal-close {
+    float: right;
+    background: none; border: none;
+    font-size: 18px; cursor: pointer;
+    color: var(--text3);
+    margin-top: -2px;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  /* Icon/Emoji Picker */
+  .picker-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+
+  .picker-tab {
+    padding: 5px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text2);
+    transition: background 0.12s;
+  }
+
+  .picker-tab.active { background: var(--text); color: white; }
+
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .emoji-btn {
+    font-size: 22px;
+    line-height: 1;
+    padding: 6px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-radius: 7px;
+    transition: background 0.1s;
+    text-align: center;
+  }
+
+  .emoji-btn:hover { background: var(--surface2); }
+
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .icon-pick-btn {
+    width: 100%; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-radius: 7px;
+    color: var(--text2);
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .icon-pick-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* Priority picker */
+  .priority-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .priority-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border2);
+    font-size: 12px;
+    cursor: pointer;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.12s, border-color 0.12s;
+  }
+
+  .priority-chip.sel { border-color: currentColor; }
+  .priority-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: var(--surface2);
+    border-radius: 99px;
+    height: 5px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-label {
+    font-size: 11.5px;
+    color: var(--text3);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex; gap: 16px; align-items: center;
+    padding: 0 4px;
+    margin-bottom: 16px;
+  }
+
+  .stat-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text3);
+  }
+
+  .stat-chip i { font-size: 14px; }
+
+  /* Drag handle */
+  .drag-handle {
+    cursor: grab;
+    color: var(--text3);
+    font-size: 16px;
+    display: flex; align-items: center;
+    opacity: 0;
+    transition: opacity 0.1s;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .list-item:hover .drag-handle { opacity: 1; }
+
+  .list-item.dragging { opacity: 0.4; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+
+  #no-list-selected { display: flex; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="app-logo">
+      <div class="logo-icon">📋</div>
+      <span class="logo-name">List Tracker</span>
+    </div>
+    <button class="new-list-btn" onclick="openNewListModal()">
+      <i class="ti ti-plus"></i> New List
+    </button>
+  </div>
+  <div class="sidebar-section-label">My Lists</div>
+  <nav id="lists-nav"></nav>
+  <div class="sidebar-footer">List Tracker · All data saved locally</div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <!-- Welcome / No List Selected -->
+  <div id="no-list-selected">
+    <div id="welcome">
+      <div class="welcome-title">Pick a template to start 👇</div>
+      <div class="welcome-sub">Choose a template below or create a blank list from the sidebar.</div>
+      <div class="templates-grid" id="templates-grid"></div>
+    </div>
+  </div>
+
+  <!-- Active List -->
+  <div id="list-view" class="hidden" style="display:flex;flex-direction:column;height:100%;">
+    <div id="toolbar">
+      <button id="list-icon-btn" onclick="openIconPicker()" title="Change icon">📋</button>
+      <input id="list-title-input" type="text" placeholder="List name…" oninput="saveCurrentList()">
+      <span id="list-template-tag" class="toolbar-tag hidden"></span>
+      <div class="toolbar-actions">
+        <button class="icon-btn" title="Sort" onclick="toggleSort()"><i class="ti ti-arrows-sort"></i></button>
+        <button class="icon-btn" title="Delete list" onclick="deleteCurrentList()" style="color:#EF4444;"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+
+    <div id="content-area">
+      <div id="add-item-bar">
+        <span id="item-emoji-display" style="font-size:18px;cursor:pointer;" onclick="openItemEmojiPicker()" title="Pick emoji">✏️</span>
+        <input id="add-item-input" type="text" placeholder="Add a new item…" onkeydown="if(event.key==='Enter')addItem()">
+        <button id="add-emoji-btn" onclick="openItemEmojiPicker()" title="Pick emoji">😊</button>
+        <button id="add-submit-btn" onclick="addItem()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+
+      <div id="progress-section" class="hidden">
+        <div class="progress-label">
+          <span id="progress-text">0 of 0 done</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      </div>
+
+      <div class="stats-row" id="stats-row">
+        <div class="stat-chip"><i class="ti ti-list"></i><span id="stat-total">0 items</span></div>
+        <div class="stat-chip"><i class="ti ti-check"></i><span id="stat-done">0 done</span></div>
+      </div>
+
+      <div id="items-list"></div>
+      <div id="empty-hint" class="hidden" style="text-align:center;padding:40px 0;color:var(--text3);font-size:14px;">
+        <i class="ti ti-mood-smile" style="font-size:36px;display:block;margin-bottom:8px;opacity:0.4;"></i>
+        No items yet — add one above!
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS -->
+
+<!-- New List Modal -->
+<div id="new-list-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('new-list-modal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('new-list-modal')"><i class="ti ti-x"></i></button>
+    <div class="modal-title">Create a new list</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <button id="nl-icon-btn" onclick="openIconPicker('new')" style="width:46px;height:46px;font-size:24px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:10px;cursor:pointer;">📋</button>
+      <input id="nl-name-input" type="text" placeholder="List name…" style="flex:1;padding:10px 14px;border:1.5px solid var(--border2);border-radius:10px;font-size:15px;outline:none;font-family:'DM Sans',sans-serif;" onkeydown="if(event.key==='Enter')createNewList()">
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:500;">Template</div>
+    <div id="nl-templates" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;"></div>
+    <button onclick="createNewList()" style="width:100%;padding:10px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">Create List</button>
+  </div>
+</div>
+
+<!-- Icon / Emoji Picker Modal -->
+<div id="icon-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('icon-modal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('icon-modal')"><i class="ti ti-x"></i></button>
+    <div class="modal-title">Choose an icon</div>
+    <div class="picker-tabs">
+      <button class="picker-tab active" id="tab-emoji" onclick="switchTab('emoji')">Emoji</button>
+      <button class="picker-tab" id="tab-icon" onclick="switchTab('icon')">Icons</button>
+    </div>
+    <div id="panel-emoji">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="emoji-cats"></div>
+      <div class="emoji-grid" id="emoji-grid"></div>
+    </div>
+    <div id="panel-icon" class="hidden">
+      <div class="icon-grid" id="icon-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Item Emoji Picker -->
+<div id="item-emoji-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('item-emoji-modal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('item-emoji-modal')"><i class="ti ti-x"></i></button>
+    <div class="modal-title">Pick an emoji</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="item-emoji-cats"></div>
+    <div class="emoji-grid" id="item-emoji-grid"></div>
+  </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────────────────
+// DATA
+// ────────────────────────────────────────────────────────────
+
+const EMOJI_CATEGORIES = {
+  "Smileys": ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","👻","💀","☠️","👽","👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😿","😾"],
+  "People": ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🙏","✍️","💅","🤳","💪","🦾","🦵","🦶","👂","🦻","👃","🫀","🫁","🧠","🦷","🦴","👁️","👅","👤","👥","🫂","👶","🧒","👦","👧","🧑","👱","👨","🧔","👩","🧓","👴","👵","🙍","🙎","🙅","🙆","💁","🙋","🧏","🙇","🤦","🤷"],
+  "Nature": ["🌱","🌿","☘️","🍀","🎋","🎍","🍃","🍂","🍁","🍄","🌾","💐","🌷","🌹","🥀","🌺","🌸","🌼","🌻","🌞","🌝","🌛","🌜","🌚","🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔","🌙","🌟","⭐","🌠","🌌","☁️","⛅","🌤️","🌈","⚡","🌩️","🌧️","🌦️","🌥️","☔","❄️","🌊","💧","🌀","🌪️","🌫️","🌈","🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐔","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛"],
+  "Food": ["🍎","🍊","🍋","🍇","🍓","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🧄","🧅","🥔","🍠","🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🦴","🌭","🍔","🍟","🍕","🫓","🥪","🥙","🧆","🌮","🌯","🫔","🥗","🥘","🫕","🥫","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🦪","🍤","🍙","🍚","🍘","🍥","🥮","🍢","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🧃","🥤","🧋","🍵","☕","🫖","🧊","🥛","🍼","🫗","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🧉","🍾"],
+  "Travel": ["✈️","🛫","🛬","🛩️","💺","🚀","🛸","🚁","🛶","⛵","🚤","🛥️","🛳️","⛴️","🚢","🚂","🚃","🚄","🚅","🚆","🚇","🚈","🚉","🚊","🚝","🚞","🚋","🚌","🚍","🚎","🚐","🚑","🚒","🚓","🚔","🚕","🚖","🚗","🚘","🚙","🛻","🚚","🚛","🚜","🏎️","🏍️","🛵","🚲","🛴","🛹","🛼","🚏","🛣️","🛤️","⛽","🛞","🚨","🚥","🚦","🗺️","🧭","⛰️","🌋","🗻","🏕️","🏖️","🏜️","🏝️","🏞️","🏟️","🏛️","🏗️","🧱","🏘️","🏚️","🏠","🏡","🏢","🏣","🏤","🏥","🏦","🏨","🏩","🏪","🏫","🏬","🏭","🏯","🏰","💒","🗼","🗽","⛪","🕌","🛕","🕍","⛩️","🕋","⛲","⛺","🌁","🌃","🏙️","🌄","🌅","🌆","🌇","🌉","🗾","🎠","🎡","🎢","💈","🎪","🗿","🌐"],
+  "Activities": ["⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🏓","🏸","🏒","🥍","🏑","🏏","🥅","⛳","🏹","🎣","🤿","🎽","🎿","🛷","🥌","🎯","🪀","🪁","🎮","🕹️","🎰","🎲","🧩","🪅","🎭","🎨","🖼️","🎪","🎤","🎧","🎼","🎹","🥁","🪘","🎷","🎺","🎸","🪕","🎻","🎬","🎥","📹","📷","📸","📽️","🎞️","🔭","🔬","📡","💡","🔦","🕯️","🧯","📚","📖","📝","✏️","🖊️","🖋️","✒️","📌","📎","✂️","🗂️","🗃️","🗄️","🗑️","🔒","🔓","🔑","🗝️","🔨","⛏️","⚒️","🛠️","🗡️","⚔️","🛡️","🔧","🔩","⚙️","🗜️","⚖️","🦯","🔗","⛓️","🧲","🪜","🧰","🪤","🧲"],
+  "Objects": ["💎","💍","👑","💄","💋","💘","💝","💖","💗","💓","💞","💕","❣️","💔","❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💯","🔥","✨","⚡","💥","🌟","💫","🌀","🎉","🎊","🎈","🎁","🎀","🎗️","🎟️","🎫","🏆","🥇","🥈","🥉","🏅","🎖️","🏵️","🎗️","🎠","🪞","🛋️","🪑","🪣","🪥","🧴","🧷","🧹","🧺","🧻","🪣","🪤","🧼","🫧","🪒","🧽","🪜","🛒","🚪","🪟","🪞","📦","📫","📪","📬","📭","📮","🗳️","📥","📤","📧","📨","📩","📜","📃","📄","📑","🗒️","🗓️","📆","📅","📇","🗂️","📋","📁","📂","🗄️","📊","📈","📉","🗃️","💰","💴","💵","💶","💷","💸","💳","💹","🏧","💱"],
+};
+
+const TABLER_ICONS = [
+  "ti-home","ti-star","ti-heart","ti-check","ti-list","ti-calendar","ti-clock","ti-bell","ti-bookmark","ti-tag",
+  "ti-folder","ti-file","ti-edit","ti-trash","ti-settings","ti-user","ti-users","ti-search","ti-pin","ti-map",
+  "ti-plane","ti-car","ti-shopping-cart","ti-gift","ti-music","ti-camera","ti-phone","ti-mail","ti-lock","ti-key",
+  "ti-chart-bar","ti-chart-pie","ti-database","ti-code","ti-cpu","ti-device-laptop","ti-sun","ti-moon","ti-cloud","ti-snowflake",
+  "ti-briefcase","ti-building","ti-school","ti-stethoscope","ti-apple","ti-pizza","ti-coffee","ti-beer","ti-salad","ti-tools",
+  "ti-palette","ti-pencil","ti-book","ti-notes","ti-notebook","ti-checklist","ti-clipboard","ti-flag","ti-trophy","ti-crown",
+  "ti-run","ti-swim","ti-bike","ti-yoga","ti-barbell","ti-ball-football","ti-ball-basketball","ti-ball-tennis","ti-globe","ti-map-pin"
+];
+
+const TEMPLATES = [
+  { id:"blank", name:"Blank", icon:"📋", desc:"Start fresh", items:[], color:"gray" },
+  { id:"todo", name:"To-Do", icon:"✅", desc:"Daily tasks & chores", items:[
+    {text:"Morning routine",emoji:"☀️",note:"",done:false,priority:"med"},
+    {text:"Check emails",emoji:"📧",note:"",done:false,priority:"low"},
+    {text:"Grocery shopping",emoji:"🛒",note:"",done:false,priority:"high"},
+  ]},
+  { id:"travel", name:"Travel", icon:"✈️", desc:"Pack lists & trip plans", items:[
+    {text:"Book flights",emoji:"✈️",note:"Check Kayak & Google Flights",done:false,priority:"high"},
+    {text:"Pack passport",emoji:"🛂",note:"",done:false,priority:"high"},
+    {text:"Download offline maps",emoji:"🗺️",note:"",done:false,priority:"med"},
+    {text:"Travel insurance",emoji:"🛡️",note:"",done:false,priority:"med"},
+    {text:"Local currency",emoji:"💵",note:"",done:false,priority:"low"},
+  ]},
+  { id:"shopping", name:"Shopping", icon:"🛍️", desc:"Groceries & errands", items:[
+    {text:"Milk",emoji:"🥛",note:"2% or oat",done:false,priority:"med"},
+    {text:"Eggs",emoji:"🥚",note:"",done:false,priority:"med"},
+    {text:"Bread",emoji:"🍞",note:"",done:false,priority:"low"},
+    {text:"Vegetables",emoji:"🥦",note:"Broccoli, spinach",done:false,priority:"low"},
+  ]},
+  { id:"plan", name:"Plan", icon:"🗓️", desc:"Events & project steps", items:[
+    {text:"Define goals",emoji:"🎯",note:"",done:false,priority:"high"},
+    {text:"Set deadlines",emoji:"📅",note:"",done:false,priority:"high"},
+    {text:"Assign tasks",emoji:"👥",note:"",done:false,priority:"med"},
+    {text:"Review progress",emoji:"📊",note:"Weekly check-in",done:false,priority:"low"},
+  ]},
+  { id:"reading", name:"Reading", icon:"📚", desc:"Books & articles", items:[
+    {text:"Atomic Habits",emoji:"📖",note:"James Clear",done:false,priority:"high"},
+    {text:"Deep Work",emoji:"🧠",note:"Cal Newport",done:false,priority:"med"},
+  ]},
+  { id:"ideas", name:"Ideas", icon:"💡", desc:"Brainstorming & notes", items:[
+    {text:"Start a blog",emoji:"✍️",note:"",done:false,priority:"low"},
+    {text:"Learn a language",emoji:"🗣️",note:"",done:false,priority:"med"},
+  ]},
+  { id:"fitness", name:"Fitness", icon:"💪", desc:"Workout & health goals", items:[
+    {text:"Morning run 5km",emoji:"🏃",note:"Mon/Wed/Fri",done:false,priority:"high"},
+    {text:"Strength training",emoji:"🏋️",note:"Tue/Thu",done:false,priority:"high"},
+    {text:"Drink 2L water",emoji:"💧",note:"Daily",done:false,priority:"med"},
+    {text:"Meal prep Sunday",emoji:"🥗",note:"",done:false,priority:"low"},
+  ]},
+  { id:"goals", name:"Goals", icon:"🏆", desc:"Short & long-term goals", items:[
+    {text:"Learn to code",emoji:"💻",note:"3 months",done:false,priority:"high"},
+    {text:"Save $5000",emoji:"💰",note:"By end of year",done:false,priority:"high"},
+    {text:"Read 12 books",emoji:"📚",note:"1 per month",done:false,priority:"med"},
+  ]},
+];
+
+// ────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────
+
+let lists = JSON.parse(localStorage.getItem('lt_lists') || '[]');
+let activeListId = null;
+let pickerTarget = 'current'; // 'current' | 'new'
+let itemEmojiTarget = null; // item id or null (null = new item bar)
+let selectedItemEmoji = '✏️';
+let newListIcon = '📋';
+let newListTemplate = 'blank';
+let sortAsc = false;
+
+function save() {
+  localStorage.setItem('lt_lists', JSON.stringify(lists));
+}
+
+function getList(id) { return lists.find(l => l.id === id); }
+function getActive() { return getList(activeListId); }
+
+// ────────────────────────────────────────────────────────────
+// RENDER SIDEBAR
+// ────────────────────────────────────────────────────────────
+
+function renderSidebar() {
+  const nav = document.getElementById('lists-nav');
+  nav.innerHTML = '';
+  if (!lists.length) {
+    nav.innerHTML = '<div style="padding:16px 10px;font-size:12.5px;color:var(--sidebar-muted);text-align:center;">No lists yet</div>';
+    return;
+  }
+  lists.forEach(list => {
+    const done = (list.items || []).filter(i => i.done).length;
+    const total = (list.items || []).length;
+    const el = document.createElement('div');
+    el.className = 'list-nav-item' + (list.id === activeListId ? ' active' : '');
+    el.innerHTML = `
+      <span class="nav-icon">${list.icon || '📋'}</span>
+      <span class="nav-label">${escHtml(list.name || 'Untitled')}</span>
+      ${total ? `<span class="nav-count">${done}/${total}</span>` : ''}
+      <button class="nav-delete" onclick="deleteList('${list.id}',event)" title="Delete"><i class="ti ti-x"></i></button>
+    `;
+    el.onclick = (e) => { if (!e.target.closest('.nav-delete')) selectList(list.id); };
+    nav.appendChild(el);
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// LIST SELECTION / DISPLAY
+// ────────────────────────────────────────────────────────────
+
+function selectList(id) {
+  activeListId = id;
+  renderSidebar();
+  showListView();
+}
+
+function showListView() {
+  document.getElementById('no-list-selected').style.display = 'none';
+  document.getElementById('list-view').classList.remove('hidden');
+  document.getElementById('list-view').style.display = 'flex';
+  renderListView();
+}
+
+function showWelcome() {
+  document.getElementById('no-list-selected').style.display = 'flex';
+  document.getElementById('list-view').classList.add('hidden');
+  document.getElementById('list-view').style.display = 'none';
+}
+
+function renderListView() {
+  const list = getActive();
+  if (!list) { showWelcome(); return; }
+
+  document.getElementById('list-icon-btn').textContent = list.icon || '📋';
+  document.getElementById('list-title-input').value = list.name || '';
+
+  const tag = document.getElementById('list-template-tag');
+  if (list.template && list.template !== 'blank') {
+    tag.textContent = list.template;
+    tag.classList.remove('hidden');
+  } else {
+    tag.classList.add('hidden');
+  }
+
+  renderItems();
+}
+
+function renderItems() {
+  const list = getActive();
+  if (!list) return;
+  const items = list.items || [];
+  const container = document.getElementById('items-list');
+  container.innerHTML = '';
+
+  // Progress
+  const total = items.length;
+  const done = items.filter(i => i.done).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  const progSec = document.getElementById('progress-section');
+  if (total > 0) {
+    progSec.classList.remove('hidden');
+    document.getElementById('progress-text').textContent = `${done} of ${total} done`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-bar').style.width = pct + '%';
+  } else {
+    progSec.classList.add('hidden');
+  }
+
+  document.getElementById('stat-total').textContent = total + ' item' + (total !== 1 ? 's' : '');
+  document.getElementById('stat-done').textContent = done + ' done';
+  document.getElementById('empty-hint').style.display = total === 0 ? 'block' : 'none';
+
+  // Render items
+  const toRender = sortAsc ? [...items].sort((a,b) => a.text.localeCompare(b.text)) : items;
+  toRender.forEach((item) => {
+    const el = createItemEl(item, items.indexOf(item));
+    container.appendChild(el);
+  });
+}
+
+function createItemEl(item, idx) {
+  const div = document.createElement('div');
+  div.className = 'list-item' + (item.done ? ' done' : '');
+  div.dataset.idx = idx;
+
+  const priorityColors = { high:'priority-high', med:'priority-med', low:'priority-low', none:'priority-none' };
+  const pc = priorityColors[item.priority || 'none'];
+
+  div.innerHTML = `
+    <div class="drag-handle" aria-hidden="true"><i class="ti ti-grip-vertical"></i></div>
+    <div class="item-check" onclick="toggleItem(${idx})">${item.done ? '<i class="ti ti-check" style="font-size:11px"></i>' : ''}</div>
+    <span class="item-emoji" style="cursor:pointer;" onclick="openItemEmojiPickerForItem(${idx})">${item.emoji || '▪️'}</span>
+    <div class="item-body">
+      <div class="item-text" contenteditable="true" onblur="updateItemText(${idx}, this.textContent)">${escHtml(item.text)}</div>
+      <div class="item-note" contenteditable="true" data-placeholder="Add a note…" onblur="updateItemNote(${idx}, this.textContent)">${escHtml(item.note || '')}</div>
+    </div>
+    <div class="${pc} item-priority" title="Priority: ${item.priority||'none'}"></div>
+    <div class="item-actions">
+      <button class="item-action-btn" onclick="cyclePriority(${idx})" title="Priority"><i class="ti ti-flag"></i></button>
+      <button class="item-action-btn danger" onclick="deleteItem(${idx})" title="Delete"><i class="ti ti-trash"></i></button>
+    </div>
+  `;
+  return div;
+}
+
+// ────────────────────────────────────────────────────────────
+// ITEM OPERATIONS
+// ────────────────────────────────────────────────────────────
+
+function addItem() {
+  const input = document.getElementById('add-item-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = getActive();
+  if (!list) return;
+  list.items = list.items || [];
+  list.items.push({ text, emoji: selectedItemEmoji, note:'', done: false, priority:'none' });
+  save();
+  input.value = '';
+  renderItems();
+  renderSidebar();
+}
+
+function toggleItem(idx) {
+  const list = getActive();
+  const item = list.items[idx];
+  item.done = !item.done;
+  save();
+  renderItems();
+  renderSidebar();
+}
+
+function deleteItem(idx) {
+  const list = getActive();
+  list.items.splice(idx, 1);
+  save();
+  renderItems();
+  renderSidebar();
+}
+
+function updateItemText(idx, text) {
+  const list = getActive();
+  list.items[idx].text = text.trim();
+  save();
+  renderSidebar();
+}
+
+function updateItemNote(idx, note) {
+  const list = getActive();
+  list.items[idx].note = note.trim();
+  save();
+}
+
+function cyclePriority(idx) {
+  const list = getActive();
+  const cycle = ['none','low','med','high'];
+  const cur = list.items[idx].priority || 'none';
+  list.items[idx].priority = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
+  save();
+  renderItems();
+}
+
+function toggleSort() {
+  sortAsc = !sortAsc;
+  renderItems();
+}
+
+// ────────────────────────────────────────────────────────────
+// LIST CRUD
+// ────────────────────────────────────────────────────────────
+
+function saveCurrentList() {
+  const list = getActive();
+  if (!list) return;
+  list.name = document.getElementById('list-title-input').value;
+  save();
+  renderSidebar();
+}
+
+function deleteCurrentList() {
+  if (!activeListId) return;
+  deleteList(activeListId, null, true);
+}
+
+function deleteList(id, e, confirmed=false) {
+  if (e) e.stopPropagation();
+  const list = getList(id);
+  if (!confirmed && !confirm(`Delete "${list.name || 'Untitled'}"?`)) return;
+  lists = lists.filter(l => l.id !== id);
+  save();
+  if (activeListId === id) {
+    activeListId = lists.length ? lists[lists.length - 1].id : null;
+    if (activeListId) selectList(activeListId);
+    else showWelcome();
+  }
+  renderSidebar();
+}
+
+function openNewListModal() {
+  newListIcon = '📋';
+  newListTemplate = 'blank';
+  document.getElementById('nl-icon-btn').textContent = newListIcon;
+  document.getElementById('nl-name-input').value = '';
+
+  // Populate templates
+  const nl = document.getElementById('nl-templates');
+  nl.innerHTML = '';
+  TEMPLATES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border2);background:none;cursor:pointer;font-family:DM Sans,sans-serif;font-size:13px;transition:background 0.12s;';
+    btn.innerHTML = `<span style="font-size:18px">${t.icon}</span><span style="font-weight:500">${t.name}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('#nl-templates button').forEach(b => b.style.background = 'none');
+      btn.style.background = 'var(--surface2)';
+      btn.style.borderColor = 'rgba(0,0,0,0.25)';
+      newListTemplate = t.id;
+      if (t.id !== 'blank') {
+        newListIcon = t.icon;
+        document.getElementById('nl-icon-btn').textContent = newListIcon;
+        if (!document.getElementById('nl-name-input').value) {
+          document.getElementById('nl-name-input').value = t.name;
+        }
+      }
+    };
+    nl.appendChild(btn);
+  });
+
+  document.getElementById('new-list-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('nl-name-input').focus(), 50);
+}
+
+function createNewList() {
+  const name = document.getElementById('nl-name-input').value.trim() || 'Untitled List';
+  const tmpl = TEMPLATES.find(t => t.id === newListTemplate) || TEMPLATES[0];
+  const list = {
+    id: 'list_' + Date.now(),
+    name,
+    icon: newListIcon,
+    template: newListTemplate,
+    items: JSON.parse(JSON.stringify(tmpl.items || []))
+  };
+  lists.push(list);
+  save();
+  closeModal('new-list-modal');
+  renderSidebar();
+  selectList(list.id);
+}
+
+// ────────────────────────────────────────────────────────────
+// ICON / EMOJI PICKER
+// ────────────────────────────────────────────────────────────
+
+let activeTab = 'emoji';
+let activeEmojiCat = Object.keys(EMOJI_CATEGORIES)[0];
+
+function openIconPicker(target = 'current') {
+  pickerTarget = target;
+  renderEmojiPanel('icon-modal');
+  renderIconPanel();
+  switchTab('emoji');
+  document.getElementById('icon-modal').classList.remove('hidden');
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-emoji').classList.toggle('active', tab === 'emoji');
+  document.getElementById('tab-icon').classList.toggle('active', tab === 'icon');
+  document.getElementById('panel-emoji').classList.toggle('hidden', tab !== 'emoji');
+  document.getElementById('panel-icon').classList.toggle('hidden', tab !== 'icon');
+}
+
+function renderEmojiPanel(modalId) {
+  const cats = document.getElementById('emoji-cats');
+  const grid = document.getElementById('emoji-grid');
+  cats.innerHTML = '';
+  Object.keys(EMOJI_CATEGORIES).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:none;cursor:pointer;font-size:11.5px;font-family:DM Sans,sans-serif;transition:background 0.1s;';
+    btn.textContent = cat;
+    if (cat === activeEmojiCat) btn.style.background = 'var(--text)'; btn.style.color = cat === activeEmojiCat ? 'white' : 'var(--text2)';
+    btn.onclick = () => { activeEmojiCat = cat; renderEmojiGrid(grid); renderEmojiCatBtns(cats, grid); };
+    cats.appendChild(btn);
+  });
+  renderEmojiGrid(grid);
+}
+
+function renderEmojiCatBtns(cats, grid) {
+  Array.from(cats.children).forEach((btn, i) => {
+    const cat = Object.keys(EMOJI_CATEGORIES)[i];
+    btn.style.background = cat === activeEmojiCat ? 'var(--text)' : 'none';
+    btn.style.color = cat === activeEmojiCat ? 'white' : 'var(--text2)';
+  });
+  renderEmojiGrid(grid);
+}
+
+function renderEmojiGrid(grid) {
+  grid.innerHTML = '';
+  (EMOJI_CATEGORIES[activeEmojiCat] || []).forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => selectIcon(emoji);
+    grid.appendChild(btn);
+  });
+}
+
+function renderIconPanel() {
+  const grid = document.getElementById('icon-grid');
+  grid.innerHTML = '';
+  TABLER_ICONS.forEach(icon => {
+    const btn = document.createElement('button');
+    btn.className = 'icon-pick-btn';
+    btn.innerHTML = `<i class="ti ${icon}"></i>`;
+    btn.onclick = () => selectIcon(null, icon);
+    grid.appendChild(btn);
+  });
+}
+
+function selectIcon(emoji, tablerIcon) {
+  const display = emoji || `<i class="ti ${tablerIcon}" style="font-size:20px"></i>`;
+  if (pickerTarget === 'new') {
+    newListIcon = emoji || tablerIcon;
+    document.getElementById('nl-icon-btn').innerHTML = emoji || `<i class="ti ${tablerIcon}" style="font-size:20px"></i>`;
+  } else {
+    const list = getActive();
+    if (list) { list.icon = emoji || tablerIcon; save(); }
+    const btn = document.getElementById('list-icon-btn');
+    btn.innerHTML = emoji || `<i class="ti ${tablerIcon}" style="font-size:20px"></i>`;
+    renderSidebar();
+  }
+  closeModal('icon-modal');
+}
+
+// Item emoji picker
+function openItemEmojiPicker() {
+  itemEmojiTarget = null;
+  renderItemEmojiPanel();
+  document.getElementById('item-emoji-modal').classList.remove('hidden');
+}
+
+function openItemEmojiPickerForItem(idx) {
+  itemEmojiTarget = idx;
+  renderItemEmojiPanel();
+  document.getElementById('item-emoji-modal').classList.remove('hidden');
+}
+
+function renderItemEmojiPanel() {
+  const cats = document.getElementById('item-emoji-cats');
+  const grid = document.getElementById('item-emoji-grid');
+  cats.innerHTML = '';
+  Object.keys(EMOJI_CATEGORIES).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:none;cursor:pointer;font-size:11.5px;font-family:DM Sans,sans-serif;transition:background 0.1s;';
+    btn.textContent = cat;
+    btn.style.background = cat === activeEmojiCat ? 'var(--text)' : 'none';
+    btn.style.color = cat === activeEmojiCat ? 'white' : 'var(--text2)';
+    btn.onclick = () => {
+      activeEmojiCat = cat;
+      Array.from(cats.children).forEach((b, i) => {
+        const c = Object.keys(EMOJI_CATEGORIES)[i];
+        b.style.background = c === activeEmojiCat ? 'var(--text)' : 'none';
+        b.style.color = c === activeEmojiCat ? 'white' : 'var(--text2)';
+      });
+      renderItemGrid(grid);
+    };
+    cats.appendChild(btn);
+  });
+  renderItemGrid(grid);
+}
+
+function renderItemGrid(grid) {
+  grid.innerHTML = '';
+  (EMOJI_CATEGORIES[activeEmojiCat] || []).forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => selectItemEmoji(emoji);
+    grid.appendChild(btn);
+  });
+}
+
+function selectItemEmoji(emoji) {
+  if (itemEmojiTarget === null) {
+    selectedItemEmoji = emoji;
+    document.getElementById('item-emoji-display').textContent = emoji;
+  } else {
+    const list = getActive();
+    list.items[itemEmojiTarget].emoji = emoji;
+    save();
+    renderItems();
+  }
+  closeModal('item-emoji-modal');
+}
+
+// ────────────────────────────────────────────────────────────
+// TEMPLATES WELCOME GRID
+// ────────────────────────────────────────────────────────────
+
+function renderTemplatesGrid() {
+  const grid = document.getElementById('templates-grid');
+  grid.innerHTML = '';
+  TEMPLATES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `<div class="t-icon">${t.icon}</div><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div>`;
+    card.onclick = () => {
+      newListTemplate = t.id;
+      newListIcon = t.icon;
+      const list = {
+        id: 'list_' + Date.now(),
+        name: t.name,
+        icon: t.icon,
+        template: t.id,
+        items: JSON.parse(JSON.stringify(t.items || []))
+      };
+      lists.push(list);
+      save();
+      renderSidebar();
+      selectList(list.id);
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// MODAL HELPERS
+// ────────────────────────────────────────────────────────────
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ────────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────────
+
+renderTemplatesGrid();
+renderSidebar();
+
+if (lists.length > 0) {
+  selectList(lists[lists.length - 1].id);
+} else {
+  showWelcome();
+}
+
+// Enter key in add bar
+document.getElementById('add-item-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+</script>
+</body>
+</html>
